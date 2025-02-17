@@ -11,6 +11,12 @@ public class LaGallegaScrapperJob : IInvocable
     
     public async Task Invoke()
     {
+        var value = true;
+
+        if (value)
+        {
+            return;
+        }
         _logger.LogInformation("LaGallegaScrapperJob is running");
         
         var options = new ChromeOptions();
@@ -21,7 +27,9 @@ public class LaGallegaScrapperJob : IInvocable
         
         _logger.LogInformation("Navigating to La Gallega");
 
-        await driver.Navigate().GoToUrlAsync("https://www.lagallega.com.ar/login.asp");
+        var strategy = new AlmacenCategoryDataCollectorStrategy(_logger, driver);
+        await strategy.Navigate();
+        await strategy.CollectData();
 
         
         _logger.LogInformation("La Gallega page loaded");
