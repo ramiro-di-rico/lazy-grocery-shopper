@@ -11,8 +11,8 @@ builder.Logging.AddConsole();
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-builder.Services.AddTransient<BaseGroceryScrapperJob>();
-builder.Services.AddTransient<LaGallegaScrapperJob>();
+//builder.Services.AddTransient<BaseGroceryScrapperJob>();
+ScrapperDependencyResolver.RegisterDependencies(builder.Services);
 builder.Services.AddScheduler();
 
 var app = builder.Build();

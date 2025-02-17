@@ -6,3 +6,5 @@ global using GroceryScrapper.Scrapper;
 global using OpenQA.Selenium.Chrome;
 global using GroceryScrapper.Scrapper.LaGallega;
 global using GroceryScrapper.Data;
+global using System.Globalization;
+global using OpenQA.Selenium;

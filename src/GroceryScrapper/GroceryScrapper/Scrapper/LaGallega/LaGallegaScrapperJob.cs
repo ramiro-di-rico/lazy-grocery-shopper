@@ -3,10 +3,12 @@ namespace GroceryScrapper.Scrapper.LaGallega;
 public class LaGallegaScrapperJob : IInvocable
 {
     private readonly ILogger<LaGallegaScrapperJob> _logger;
+    private readonly IEnumerable<ICategoryDataCollector> _dataCollectors;
 
-    public LaGallegaScrapperJob(ILogger<LaGallegaScrapperJob> logger)
+    public LaGallegaScrapperJob(ILogger<LaGallegaScrapperJob> logger, IEnumerable<ICategoryDataCollector> dataCollectors)
     {
         _logger = logger;
+        _dataCollectors = dataCollectors;
     }
     
     public async Task Invoke()
@@ -23,17 +25,24 @@ public class LaGallegaScrapperJob : IInvocable
         //options.AddArgument("--headless");
         using var driver = new ChromeDriver(options);
         
+        var groceryStore = new GroceryStore
+        {
+            Name = "La Gallega",
+            Url = "https://www.lagallega.com.ar"
+        };
+        
         _logger.LogInformation("ChromeDriver initialized");
-        
-        _logger.LogInformation("Navigating to La Gallega");
 
-        var strategy = new AlmacenCategoryDataCollectorStrategy(_logger, driver);
-        await strategy.Navigate();
-        await strategy.CollectData();
+        var jobCollectors = _dataCollectors
+            .Where(dataCollector => dataCollector.JobOwner == nameof(LaGallegaScrapperJob))
+            .ToList();
 
-        
-        _logger.LogInformation("La Gallega page loaded");
-        
+        foreach (var categoryDataCollector in jobCollectors)
+        {
+            await categoryDataCollector.InitializeAsync(driver, groceryStore);
+            await categoryDataCollector.CollectDataAsync();
+        }
+
         _logger.LogInformation("Closing ChromeDriver");
         
         driver.Quit();
