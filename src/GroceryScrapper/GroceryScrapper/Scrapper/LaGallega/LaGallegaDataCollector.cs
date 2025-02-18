@@ -1,12 +1,14 @@
 namespace GroceryScrapper.Scrapper.LaGallega;
 
-public class AlmacenCategoryDataCollectorStrategy : ICategoryDataCollector
+public class LaGallegaDataCollector : ICategoryDataCollector
 {
-    private readonly ILogger<AlmacenCategoryDataCollectorStrategy> _logger;
+    private readonly ILogger<LaGallegaDataCollector> _logger;
+    private readonly ApplicationDbContext _dbContext;
     private ChromeDriver _driver;
     private int _currentPage = 0;
     private List<string> _subCategories = new()
     {
+        // Store
         "nl=03010000&TM=cx",
         "nl=03020000&TM=cx",
         "nl=03080000&TM=cx",
@@ -22,14 +24,32 @@ public class AlmacenCategoryDataCollectorStrategy : ICategoryDataCollector
         "nl=03140000&TM=cx",
         "nl=03210000&TM=cx",
         "nl=03060000&TM=cx",
-        "nl=03150000&TM=cx",
+        //"nl=03150000&TM=cx", Not needed
+        
+        // Beberages
+        "nl=07030000&TM=cx",
+        "nl=07040000&TM=cx",
+        "nl=07010000&TM=cx",
+        "nl=07090000&TM=cx",
+        "nl=07050000&TM=cx",
+        "nl=07070000&TM=cx",
+        "nl=07020000&TM=cx",
+        
+        //Breakfast
+        "nl=06060000&TM=cx",
+        "nl=06030000&TM=cx",
+        "nl=06010000&TM=cx",
+        "nl=06050000&TM=cx",
+        "nl=06020000&TM=cx",
+        "nl=06070000&TM=cx",
+        
     };
     private string _currentSubCategory = "";
 
-    public AlmacenCategoryDataCollectorStrategy(ILogger<AlmacenCategoryDataCollectorStrategy> logger)
+    public LaGallegaDataCollector(ILogger<LaGallegaDataCollector> logger, ApplicationDbContext dbContext)
     {
         _logger = logger;
-
+        _dbContext = dbContext;
     }
 
     public GroceryStore GroceryStore { get; private set; }
@@ -39,7 +59,11 @@ public class AlmacenCategoryDataCollectorStrategy : ICategoryDataCollector
     {
         _driver = driver;
         GroceryStore = groceryStore;
-        
+
+        await _dbContext.Products
+            .Where(product => product.GroceryStoreId == GroceryStore.Id)
+            .ExecuteDeleteAsync();
+
         _logger.LogInformation("ChromeDriver initialized");
     }
     private async Task GoToNextPageAsync()
@@ -70,9 +94,13 @@ public class AlmacenCategoryDataCollectorStrategy : ICategoryDataCollector
                 await GoToNextPageAsync();
                 products.AddRange(results);
             }
+
+            await _dbContext.Products.AddRangeAsync(products);
+            await _dbContext.SaveChangesAsync();
             
             _currentSubCategory = _subCategories[_subCategories.IndexOf(_currentSubCategory) + 1];
             _currentPage = 1;
+            products.Clear();
             
             await GoToNextPageAsync();
         }
@@ -92,6 +120,7 @@ public class AlmacenCategoryDataCollectorStrategy : ICategoryDataCollector
 
             products.Add(new Product
             {
+                GroceryStoreId = GroceryStore.Id,
                 Name = name,
                 Price = price,
                 ImageUrl = element.FindElement(By.CssSelector("img")).GetAttribute("src")

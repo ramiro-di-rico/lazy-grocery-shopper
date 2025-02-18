@@ -4,8 +4,8 @@ public class ScrapperDependencyResolver
 {
     public static IServiceCollection RegisterDependencies(IServiceCollection services)
     {
-        services.AddSingleton<ICategoryDataCollector, AlmacenCategoryDataCollectorStrategy>();
-        services.AddSingleton<LaGallegaScrapperJob>();
+        services.AddTransient<ICategoryDataCollector, LaGallegaDataCollector>();
+        services.AddTransient<LaGallegaScrapperJob>();
         return services;
     }
 }

@@ -27,6 +27,7 @@ public class LaGallegaScrapperJob : IInvocable
         
         var groceryStore = new GroceryStore
         {
+            Id = 1,
             Name = "La Gallega",
             Url = "https://www.lagallega.com.ar"
         };
