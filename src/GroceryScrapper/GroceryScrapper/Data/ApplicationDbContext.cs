@@ -12,9 +12,15 @@ public class ApplicationDbContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Product>()
+            .HasKey(p => p.Id);
+        
+        modelBuilder.Entity<Product>()
             .HasOne(p => p.GroceryStore)
             .WithMany(g => g.Products)
             .HasForeignKey(p => p.GroceryStoreId);
+        
+        modelBuilder.Entity<GroceryStore>()
+            .HasKey(g => g.Id);
 
         modelBuilder.Entity<GroceryStore>()
             .Property(x => x.Name)
